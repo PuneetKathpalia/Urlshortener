@@ -17,11 +17,11 @@ pipeline {
 stage('Build') {
       steps {
         dir('client') {
-          sh 'npm install'
-          sh 'npm run build'
+          bat 'npm install'
+          bat 'npm run build'
         }
         dir('server') {
-          sh 'npm install'
+          bat 'npm install'
         }
       }
     }
@@ -29,25 +29,25 @@ stage('Build') {
     stage('Test') {
       steps {
         dir('client') {
-          sh 'npm test'
+          bat 'npm test'
         }
         dir('server') {
-          sh 'npm test'
+          bat 'npm test'
         }
       }
     }
 
     stage('Dockerize') {
       steps {
-        sh 'docker build -t ${CLIENT_IMAGE} client'
-        sh 'docker build -t ${SERVER_IMAGE} server'
+        bat 'docker build -t ${CLIENT_IMAGE} client'
+        bat 'docker build -t ${SERVER_IMAGE} server'
       }
     }
 
     stage('Deploy') {
       steps {
-        sh 'docker compose pull || true'
-        sh 'docker compose up -d --build'
+        bat 'docker compose pull || true'
+        bat 'docker compose up -d --build'
       }
     }
   }
