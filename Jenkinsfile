@@ -42,11 +42,13 @@ pipeline {
         }
 
         stage('Dockerize') {
-            steps {
-                bat "docker build -t %CLIENT_IMAGE% client"
-                bat "docker build -t %SERVER_IMAGE% server"
-            }
-        }
+    steps {
+        bat "docker pull node:18-alpine || echo 'Retrying...' && docker pull node:18-alpine"
+        bat "docker build -t %CLIENT_IMAGE% client"
+        bat "docker build -t %SERVER_IMAGE% server"
+    }
+}
+
 
         stage('Deploy') {
             steps {
