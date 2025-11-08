@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_HOST = 'tcp://localhost:2375'   // 👈 Add this line
         CLIENT_IMAGE = 'urlshortener-client:latest'
         SERVER_IMAGE = 'urlshortener-server:latest'
     }
@@ -42,13 +43,12 @@ pipeline {
         }
 
         stage('Dockerize') {
-    steps {
-        bat "docker pull node:18-alpine || echo 'Retrying...' && docker pull node:18-alpine"
-        bat "docker build -t %CLIENT_IMAGE% client"
-        bat "docker build -t %SERVER_IMAGE% server"
-    }
-}
-
+            steps {
+                bat "docker pull node:18-alpine || echo 'Retrying...' && docker pull node:18-alpine"
+                bat "docker build -t %CLIENT_IMAGE% client"
+                bat "docker build -t %SERVER_IMAGE% server"
+            }
+        }
 
         stage('Deploy') {
             steps {
