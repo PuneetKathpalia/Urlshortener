@@ -5,6 +5,7 @@ export default function Analytics() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState(null) // Track which URL is being deleted
 
   useEffect(() => {
     (async () => {
@@ -31,6 +32,19 @@ export default function Analytics() {
     URL.revokeObjectURL(url)
   }
 
+  const deleteUrl = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this URL?')) return;
+    try {
+      setDeleting(id);
+      await api.delete(`/api/url/${id}`);
+      setItems(items.filter(item => item._id !== id));
+    } catch (e) {
+      alert('Failed to delete URL: ' + (e?.response?.data?.message || 'Unknown error'));
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   if (loading) return <p>Loading…</p>
   if (error) return <p className="text-red-400">{error}</p>
 
@@ -51,10 +65,19 @@ export default function Analytics() {
                 <a href={it.shortUrl} target="_blank" rel="noreferrer" className="text-lg font-semibold link">{it.shortUrl}</a>
                 <div className="text-sm text-neutral-300 truncate">{it.originalUrl}</div>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold">{it.clicks}</div>
-                <div className="text-xs text-neutral-400">clicks</div>
-                {it.expiresAt && <div className="text-xs text-neutral-400 mt-1">expires {new Date(it.expiresAt).toLocaleString()}</div>}
+              <div className="text-right flex flex-col items-end gap-2">
+                <div>
+                  <div className="text-2xl font-bold">{it.clicks}</div>
+                  <div className="text-xs text-neutral-400">clicks</div>
+                  {it.expiresAt && <div className="text-xs text-neutral-400 mt-1">expires {new Date(it.expiresAt).toLocaleString()}</div>}
+                </div>
+                <button
+                  onClick={() => deleteUrl(it._id)}
+                  disabled={deleting === it._id}
+                  className="button bg-red-900 hover:bg-red-800 px-3 py-1 text-sm"
+                >
+                  {deleting === it._id ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           ))}

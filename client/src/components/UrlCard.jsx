@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import QRCodeBox from './QRCodeBox'
+import api from '../lib/api'
 
-export default function UrlCard({ urlDoc }) {
+export default function UrlCard({ urlDoc, onDelete }) {
   const [copied, setCopied] = useState(false)
   const short = urlDoc?.shortUrl
 
@@ -45,8 +46,22 @@ export default function UrlCard({ urlDoc }) {
           {urlDoc.expiresAt && (
             <div><span className="text-neutral-500">Expires:</span> {new Date(urlDoc.expiresAt).toLocaleString()}</div>
           )}
-          <div className="mt-3">
+          <div className="mt-3 flex gap-2">
             <button onClick={downloadQR} className="button bg-neutral-800 hover:bg-neutral-700">Download QR</button>
+            <button 
+              onClick={async () => {
+                if (!window.confirm('Are you sure you want to delete this URL?')) return;
+                try {
+                  await api.delete(`/api/url/${urlDoc._id}`);
+                  onDelete?.(urlDoc._id);
+                } catch (e) {
+                  alert('Failed to delete URL');
+                }
+              }} 
+              className="button bg-red-900 hover:bg-red-800"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>

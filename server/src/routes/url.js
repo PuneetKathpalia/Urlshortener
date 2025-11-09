@@ -52,6 +52,27 @@ export async function shortenHandler(req, res) {
 
 router.post('/shorten', optionalAuth, shortenHandler);
 
+// Delete URL endpoint
+router.delete('/:id', optionalAuth, async (req, res) => {
+  try {
+    const url = await Url.findById(req.params.id);
+    if (!url) {
+      return res.status(404).json({ message: 'URL not found' });
+    }
+    
+    // Only allow deletion if user owns the URL or if no owner
+    if (url.owner && (!req.user || url.owner.toString() !== req.user.id)) {
+      return res.status(403).json({ message: 'Not authorized to delete this URL' });
+    }
+
+    await url.deleteOne();
+    res.json({ message: 'URL deleted successfully' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Failed to delete URL' });
+  }
+});
+
 export async function redirectHandler(req, res) {
   const { slug } = req.params;
   if (!slug || slug === 'favicon.ico' || slug === 'api' || slug === 'health') {
