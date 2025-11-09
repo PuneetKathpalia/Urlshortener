@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
+    "dev:memory": "cross-env DEV_IN_MEMORY=true node --watch src/index.js",
     "start": "node src/index.js",
     "test": "echo \"No tests\" && exit 0",
     "lint": "echo \"No linter configured\""
@@ -20,5 +21,10 @@
     "mongoose": "^8.5.0",
     "morgan": "^1.10.0",
     "nanoid": "^4.0.2"
+  }
+  ,
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "mongodb-memory-server": "^8.12.1"
   }
 }

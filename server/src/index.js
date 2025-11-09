@@ -39,11 +39,37 @@ app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
-
-mongoose.connect(MONGO_URI).then(() => {
-  console.log('MongoDB connected');
+async function startServer() {
   app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
-}).catch((err) => {
-  console.error('Mongo connection error', err);
-  process.exit(1);
-});
+}
+
+async function connectMongo() {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('MongoDB connected to', MONGO_URI);
+    await startServer();
+    return;
+  } catch (err) {
+    console.error('Mongo connection error', err);
+    // Only try in-memory fallback if explicitly requested AND package is available
+    if (process.env.DEV_IN_MEMORY === 'true') {
+      try {
+        console.log('DEV_IN_MEMORY=true — attempting to load mongodb-memory-server dynamically');
+        const { MongoMemoryServer } = await import('mongodb-memory-server');
+        const mongod = await MongoMemoryServer.create();
+        const memUri = mongod.getUri();
+        // keep reference to prevent GC
+        global.__MONGOD__ = mongod;
+        await mongoose.connect(memUri);
+        console.log('Connected to in-memory MongoDB');
+        await startServer();
+        return;
+      } catch (memErr) {
+        console.error('In-memory MongoDB not available or failed to start', memErr);
+      }
+    }
+    process.exit(1);
+  }
+}
+
+connectMongo();
